@@ -1,53 +1,114 @@
 // src/context/AuthContext.jsx
 
 import React from 'react';
-import { createContext, useContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabase'
+import { createContext, useContext, useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [userRole, setUserRole] = useState(null);
+
+  const syncUserWithDatabase = async (user) => {
+    if (!user) return;
+    
+    // Check if user exists in any of our tables
+    const { data: adminData } = await supabase
+      .from('admins')
+      .select('id')
+      .eq('email', user.email)
+      .single();
+
+    if (adminData) {
+      setUserRole('admin');
+      return;
+    }
+
+    const { data: teacherData } = await supabase
+      .from('teachers')
+      .select('id')
+      .eq('email', user.email)
+      .single();
+
+    if (teacherData) {
+      setUserRole('teacher');
+      return;
+    }
+
+    const { data: studentData } = await supabase
+      .from('students')
+      .select('id')
+      .eq('email', user.email)
+      .single();
+
+    if (studentData) {
+      setUserRole('student');
+    }
+  };
 
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
-      setLoading(false)
-    }
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        if (session?.user) {
+          setUser(session.user);
+          await syncUserWithDatabase(session.user);
+        } else {
+          setUser(null);
+        }
+      } catch (err) {
+        console.error('Error getting session:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    getSession()
+    getSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        await syncUserWithDatabase(session.user);
+      } else {
+        setUser(null);
+      }
+      setLoading(false);
+    });
 
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => subscription?.unsubscribe();
+  }, []);
 
   const value = {
     user,
     loading,
+    userRole,
     signInWithOAuth: async (provider) => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: window.location.origin
         }
-      })
-      if (error) throw error
+      });
+      if (error) throw error;
     },
     signOut: async () => {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
     }
-  }
+  };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// Export the hook properly
 export const useAuth = () => {
-  return useContext(AuthContext)
-}
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};
