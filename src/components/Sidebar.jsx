@@ -59,44 +59,40 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
             </div>
           </div>
           <nav className="flex-1 mt-5 space-y-1 px-2">
-            {userRole === 'admin' && (
-              <>
-                <button
-                  onClick={() => setActiveTab('admins')}
-                  className={`flex items-center px-2 py-2 text-sm font-medium rounded-md w-full ${
-                    activeTab === 'admins' 
-                      ? 'bg-gray-900 text-white' 
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  }`}
-                >
-                  Admins
-                </button>
-                <button
-                  onClick={() => setActiveTab('teachers')}
-                  className={`flex items-center px-2 py-2 text-sm font-medium rounded-md w-full ${
-                    activeTab === 'teachers' 
-                      ? 'bg-gray-900 text-white' 
-                      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                  }`}
-                >
-                  Teachers
-                </button>
-              </>
-            )}
-            
-            {(userRole === 'admin' || userRole === 'teacher') && (
-              <button
-                onClick={() => setActiveTab('students')}
-                className={`flex items-center px-2 py-2 text-sm font-medium rounded-md w-full ${
-                  activeTab === 'students' 
-                    ? 'bg-gray-900 text-white' 
-                    : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-                }`}
-              >
+          {userRole === 'admin' && (
+            <>
+              <button onClick={() => setActiveTab('admins')} className={`...`}>
+                Admins
+              </button>
+              <button onClick={() => setActiveTab('teachers')} className={`...`}>
+                Teachers
+              </button>
+              <button onClick={() => setActiveTab('students')} className={`...`}>
                 Students
               </button>
-            )}
-          </nav>
+            </>
+          )}
+          {userRole === 'teacher' && (
+            <>
+              <button onClick={() => setActiveTab('teachers')} className={`...`}>
+                Teachers
+              </button>
+              <button onClick={() => setActiveTab('students')} className={`...`}>
+                Students
+              </button>
+            </>
+          )}
+          {userRole === 'student' && (
+            <>
+              <button onClick={() => setActiveTab('teachers')} className={`...`}>
+                Teachers
+              </button>
+              <button onClick={() => setActiveTab('students')} className={`...`}>
+                Students
+              </button>
+            </>
+          )}
+        </nav>
         </div>
       </div>
     </div>

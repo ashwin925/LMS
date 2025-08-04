@@ -11,10 +11,12 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState(null);
 
-  const syncUserWithDatabase = async (user) => {
-    if (!user) return;
-    
-    // Check if user exists in any of our tables
+// src/context/AuthContext.jsx
+const syncUserWithDatabase = async (user) => {
+  if (!user) return;
+  
+  try {
+    // Check admin first
     const { data: adminData } = await supabase
       .from('admins')
       .select('id')
@@ -26,6 +28,7 @@ export function AuthProvider({ children }) {
       return;
     }
 
+    // Then check teacher
     const { data: teacherData } = await supabase
       .from('teachers')
       .select('id')
@@ -37,16 +40,19 @@ export function AuthProvider({ children }) {
       return;
     }
 
+    // Finally check student
     const { data: studentData } = await supabase
       .from('students')
       .select('id')
       .eq('email', user.email)
       .single();
 
-    if (studentData) {
-      setUserRole('student');
-    }
-  };
+    setUserRole(studentData ? 'student' : null);
+  } catch (err) {
+    console.error('Error syncing user role:', err);
+    setUserRole(null);
+  }
+};
 
   useEffect(() => {
     const getSession = async () => {

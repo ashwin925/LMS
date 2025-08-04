@@ -19,33 +19,25 @@ export default function AddTeacher() {
     setLoading(true);
     setError(null);
 
-    try {
-      // Check if current user is admin or teacher
-      const { data: adminData } = await supabase
+   try {
+      // Only allow admins to add teachers
+      const { data: adminData, error: adminError } = await supabase
         .from('admins')
         .select('id')
         .eq('email', user.email)
         .single();
 
-      const { data: teacherData } = await supabase
-        .from('teachers')
-        .select('id')
-        .eq('email', user.email)
-        .single();
-
-      if (!adminData && !teacherData) {
-        throw new Error('Only admins or teachers can add teachers');
+      if (adminError || !adminData) {
+        throw new Error('Only admins can add teachers');
       }
 
-      const creatorId = adminData?.id || teacherData?.id;
-
       const { data, error } = await supabase
-        .from('teachers') // or 'students'
+        .from('teachers')
         .insert([{
           name,
           email,
           phone,
-          created_by: creatorId
+          created_by: adminData.id
         }])
         .select();
 

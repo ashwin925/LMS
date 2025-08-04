@@ -8,7 +8,23 @@ import { useAuth } from '../../context/AuthContext';
 export default function TeacherList() {
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user } = useAuth();
+  const { user, userRole } = useAuth();
+
+    const handleDelete = async (teacherId) => {
+    if (userRole !== 'admin') return;
+    
+    try {
+      const { error } = await supabase
+        .from('teachers')
+        .delete()
+        .eq('id', teacherId);
+
+      if (error) throw error;
+      setTeachers(teachers.filter(t => t.id !== teacherId));
+    } catch (err) {
+      console.error('Error deleting teacher:', err);
+    }
+  };
 
   useEffect(() => {
     const fetchTeachers = async () => {
@@ -50,30 +66,41 @@ export default function TeacherList() {
 
   if (loading) return <div>Loading teachers...</div>;
 
-  return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-gray-800 text-white">
-        <thead>
-          <tr>
-            <th className="px-4 py-2">Name</th>
-            <th className="px-4 py-2">Email</th>
-            <th className="px-4 py-2">Phone</th>
-            <th className="px-4 py-2">Created At</th>
-          </tr>
-        </thead>
-        <tbody>
-          {teachers.map((teacher) => (
-            <tr key={teacher.id} className="border-t border-gray-700">
-              <td className="px-4 py-2">{teacher.name}</td>
-              <td className="px-4 py-2">{teacher.email}</td>
-              <td className="px-4 py-2">{teacher.phone}</td>
+return (
+  <div className="overflow-x-auto">
+    <table className="min-w-full bg-gray-800 text-white">
+      <thead>
+        <tr>
+          <th className="px-4 py-2">Name</th>
+          <th className="px-4 py-2">Email</th>
+          <th className="px-4 py-2">Phone</th>
+          <th className="px-4 py-2">Created At</th>
+          {userRole === 'admin' && <th className="px-4 py-2">Actions</th>}
+        </tr>
+      </thead>
+      <tbody>
+        {teachers.map((teacher) => (
+          <tr key={teacher.id} className="border-t border-gray-700">
+            <td className="px-4 py-2">{teacher.name}</td>
+            <td className="px-4 py-2">{teacher.email}</td>
+            <td className="px-4 py-2">{teacher.phone}</td>
+            <td className="px-4 py-2">
+              {new Date(teacher.created_at).toLocaleString()}
+            </td>
+            {userRole === 'admin' && (
               <td className="px-4 py-2">
-                {new Date(teacher.created_at).toLocaleString()}
+                <button 
+                  onClick={() => handleDelete(teacher.id)}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Delete
+                </button>
               </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
+            )}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+);
 }
