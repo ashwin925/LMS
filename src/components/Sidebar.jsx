@@ -67,7 +67,7 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
                 Admins
               </button>
               <button onClick={() => setActiveTab('teachers')} className={`...`}>
-                mooers
+                Teacher
               </button>
               <button onClick={() => setActiveTab('students')} className={`...`}>
                 Students
