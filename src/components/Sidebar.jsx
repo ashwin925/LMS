@@ -6,7 +6,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
 export default function Sidebar({ activeTab, setActiveTab, session }) {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
@@ -44,6 +44,8 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
     }
   }, [user]);
 
+
+
   return (
     <div className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-64 bg-gray-800 border-r border-gray-700">
@@ -65,7 +67,7 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
                 Admins
               </button>
               <button onClick={() => setActiveTab('teachers')} className={`...`}>
-                Teachers
+                mooers
               </button>
               <button onClick={() => setActiveTab('students')} className={`...`}>
                 Students
@@ -93,6 +95,17 @@ export default function Sidebar({ activeTab, setActiveTab, session }) {
             </>
           )}
         </nav>
+        <div className="mt-auto p-4 border-t border-gray-700">
+        <button
+          onClick={signOut}
+          className="w-full flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Sign Out
+        </button>
+      </div>
         </div>
       </div>
     </div>

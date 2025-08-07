@@ -92,15 +92,17 @@ const syncUserWithDatabase = async (user) => {
     user,
     loading,
     userRole,
-    signInWithOAuth: async (provider) => {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-      if (error) throw error;
-    },
+signInWithOAuth: async (provider) => {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider,
+    options: {
+      redirectTo: import.meta.env.DEV 
+        ? 'http://localhost:5173/auth/callback' 
+        : 'https://lms-je3h8lw5k-ashwin-sundars-projects.vercel.app/auth/callback'
+    }
+  });
+  if (error) throw error;
+},
     signOut: async () => {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;

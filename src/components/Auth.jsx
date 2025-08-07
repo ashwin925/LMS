@@ -4,17 +4,19 @@ import React from 'react';
 
 
 export default function Auth() {
-  const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: 'http://localhost:5173/auth/callback',
-        queryParams: {
-          access_type: 'offline',
-          prompt: 'consent'
-        }
-      }
-    });
+const handleGoogleLogin = async () => {
+  const isLocalhost = window.location.hostname === 'localhost';
+  const redirectUrl = isLocalhost
+    ? 'http://localhost:5174/auth/callback'
+    : 'https://lms-je3h8lw5k-ashwin-sundars-projects.vercel.app/auth/callback';
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: redirectUrl,
+      queryParams: { access_type: 'offline', prompt: 'consent' }
+    }
+  });
 
     if (error) {
       console.error('Google OAuth error:', error);
