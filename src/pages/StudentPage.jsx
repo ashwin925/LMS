@@ -1,42 +1,32 @@
 // src/pages/StudentPage.jsx
 
-import React from 'react';
-import { useState } from 'react';
+
+import TeacherList from '../components/Teacher/TeacherList';
 import StudentList from '../components/Student/StudentList';
-import AddStudent from '../components/Student/AddStudent';
+import { useState } from 'react';
+
+
 
 export default function StudentPage() {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [activeTab, setActiveTab] = useState('teachers');
 
-  const handleRefresh = () => {
-    setRefreshKey(prev => prev + 1);
-  };
-
-return (
+  return (
     <div className="p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Student Management</h1>
-        <div className="flex gap-2">
+      <h1 className="text-2xl font-bold mb-6">Student Dashboard</h1>
+
+      <div className="flex border-b border-gray-700 mb-6">
+        {['teachers', 'students'].map((tab) => (
           <button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="px-4 py-2 bg-blue-600 rounded hover:bg-blue-700"
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 ${activeTab === tab ? 'border-b-2 border-blue-500' : ''}`}
           >
-            {showAddForm ? 'Hide Form' : 'Add New Student'}
+            {tab.charAt(0).toUpperCase() + tab.slice(1)}
           </button>
-          <button
-            onClick={handleRefresh}
-            className="px-4 py-2 bg-gray-600 rounded hover:bg-gray-700"
-          >
-            Refresh
-          </button>
-        </div>
+        ))}
       </div>
-      
-      {showAddForm && <AddStudent onSuccess={handleRefresh} />}
-      <div className="mt-8">
-        <StudentList key={refreshKey} />
-      </div>
+
+      {activeTab === 'teachers' ? <TeacherList /> : <StudentList />}
     </div>
   );
 }

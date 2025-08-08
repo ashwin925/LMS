@@ -11,7 +11,7 @@ export default function Dashboard({ session }) {
   const [activeTab, setActiveTab] = React.useState('students');
 
   return (
-    <div className="flex h-screen bg-gray-900 text-gray-100">
+    <div className="flex h-screen w-[1239px] bg-gray-900 text-gray-100">
       <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} session={session} />
       
       <main className="flex-1 overflow-y-auto p-4">

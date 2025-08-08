@@ -4,23 +4,83 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import ConfirmationDialog from '../ui/ConfirmationDialog';
+
 
 export default function StudentList() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const { user, userRole } = useAuth();
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-    const handleDelete = async (studentId) => {
-    if (userRole === 'student') return;
-    
+  const fetchStudents = async () => {
+    if (!user) return;
+    try {
+      let query = supabase
+        .from('students')
+        .select('*');
+
+      // First check if user is admin
+      const { data: adminData, error: adminError } = await supabase
+        .from('admins')
+        .select('id')
+        .eq('email', user.email)
+        .single();
+
+      if (!adminError && adminData) {
+        // Admin can see all students
+        const { data, error } = await query.order('created_at', { ascending: false });
+        if (error) throw error;
+        setStudents(data);
+      } else {
+        // Check if user is teacher
+        const { data: teacherData, error: teacherError } = await supabase
+          .from('teachers')
+          .select('id')
+          .eq('email', user.email)
+          .single();
+
+        if (!teacherError && teacherData) {
+          // Teacher can only see their students
+          const { data, error } = await query
+            .eq('created_by', teacherData.id)
+            .order('created_at', { ascending: false });
+          if (error) throw error;
+          setStudents(data);
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching students:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  const handleDeleteClick = (studentId) => {
+    if (userRole !== 'admin' && userRole !== 'teacher') return;
+    setDeleteId(studentId);
+    setIsDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (userRole !== 'admin' && userRole !== 'teacher') return;
     try {
       const { error } = await supabase
         .from('students')
         .delete()
-        .eq('id', studentId);
+        .eq('id', deleteId);
 
       if (error) throw error;
-      setStudents(students.filter(s => s.id !== studentId));
+      setStudents(students.filter(s => s.id !== deleteId));
+      setIsDialogOpen(false);
+      setDeleteId(null);
+      fetchStudents();
     } catch (err) {
       console.error('Error deleting student:', err);
     }
@@ -76,43 +136,50 @@ export default function StudentList() {
 
   if (loading) return <div>Loading students...</div>;
 
-return (
-  <div className="overflow-x-auto">
-    <table className="min-w-full bg-gray-800 text-white">
-      <thead>
-        <tr>
-          <th className="px-4 py-2">Name</th>
-          <th className="px-4 py-2">Email</th>
-          <th className="px-4 py-2">Phone</th>
-          <th className="px-4 py-2">Created At</th>
-          {(userRole === 'admin' || userRole === 'teacher') && (
-            <th className="px-4 py-2">Actions</th>
-          )}
-        </tr>
-      </thead>
-      <tbody>
-        {students.map((student) => (
-          <tr key={student.id} className="border-t border-gray-700">
-            <td className="px-4 py-2">{student.name}</td>
-            <td className="px-4 py-2">{student.email}</td>
-            <td className="px-4 py-2">{student.phone}</td>
-            <td className="px-4 py-2">
-              {new Date(student.created_at).toLocaleString()}
-            </td>
+  return (
+    <div className="overflow-x-auto">
+      <table className="min-w-full bg-gray-800 text-white">
+        <thead>
+          <tr>
+            <th className="px-4 py-2">Name</th>
+            <th className="px-4 py-2">Email</th>
+            <th className="px-4 py-2">Phone</th>
+            <th className="px-4 py-2">Created At</th>
             {(userRole === 'admin' || userRole === 'teacher') && (
-              <td className="px-4 py-2">
-                <button 
-                  onClick={() => handleDelete(student.id)}
-                  className="text-red-500 hover:text-red-700"
-                >
-                  Delete
-                </button>
-              </td>
+              <th className="px-4 py-2">Actions</th>
             )}
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-);
+        </thead>
+        <tbody>
+          {students.map((student) => (
+            <tr key={student.id} className="border-t border-gray-700">
+              <td className="px-4 py-2">{student.name}</td>
+              <td className="px-4 py-2">{student.email}</td>
+              <td className="px-4 py-2">{student.phone}</td>
+              <td className="px-4 py-2">
+                {new Date(student.created_at).toLocaleString()}
+              </td>
+              {(userRole === 'admin' || userRole === 'teacher') && (
+                <td className="px-4 py-2">
+                  <button 
+                    onClick={() => handleDeleteClick(student.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+                </td>
+              )}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <ConfirmationDialog
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
+        onConfirm={confirmDelete}
+        title="Delete Student"
+        message="Are you sure you want to delete this student? This action cannot be undone."
+      />
+    </div>
+  );
 }

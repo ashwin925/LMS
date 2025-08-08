@@ -1,5 +1,7 @@
 // src/App.js
-import React from 'react';
+
+
+// src/App.js
 import { useState, useEffect } from 'react';
 import { supabase } from './lib/supabase';
 import { AuthProvider } from './context/AuthContext';
@@ -17,26 +19,26 @@ export default function App() {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setLoading(false);
-    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setSession(session);
+        setLoading(false);
+      }
+    );
 
     return () => subscription.unsubscribe();
   }, []);
 
   if (loading) {
-    return <div className="min-h-screen bg-gray-900 flex items-center justify-center">Loading...</div>;
+    return <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      Loading...
+    </div>;
   }
 
   return (
     <AuthProvider>
       <div className="min-h-screen bg-gray-900">
-        {!session ? (
-          <Auth />
-        ) : (
-          <Dashboard session={session} />
-        )}
+        {!session ? <Auth /> : <Dashboard session={session} />}
       </div>
     </AuthProvider>
   );

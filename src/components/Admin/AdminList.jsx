@@ -3,6 +3,8 @@
 import React from 'react';
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import ConfirmationDialog from '../ui/ConfirmationDialog';
+
 
 export default function AdminList() {
   const [admins, setAdmins] = useState([]);
