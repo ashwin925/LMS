@@ -6,7 +6,6 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5174,  // Explicitly set to 5174
-    strictPort: true  // Prevent automatic port switching
   },build: {
     outDir: 'dist',
     emptyOutDir: true  // Clears old files on build

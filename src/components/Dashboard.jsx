@@ -5,6 +5,8 @@ import Sidebar from './Sidebar';
 import AdminPage from '../pages/AdminPage';
 import TeacherPage from '../pages/TeacherPage';
 import StudentPage from '../pages/StudentPage';
+import Leaderboard from './Leaderboard';
+
 
 export default function Dashboard({ session }) {
   const { userRole } = useAuth();
@@ -18,6 +20,8 @@ export default function Dashboard({ session }) {
         {activeTab === 'admins' && <AdminPage />}
         {activeTab === 'teachers' && <TeacherPage />}
         {activeTab === 'students' && <StudentPage />}
+        {activeTab === 'leaderboard' && <Leaderboard />}
+
       </main>
     </div>
   );
